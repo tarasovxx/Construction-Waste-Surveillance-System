@@ -1,42 +1,179 @@
-import streamlit as st
 import cv2
-import numpy as np
+import streamlit as st
+import plotly.express as px
 
-# Загрузка модели для обнаружения объектов
-# from tensorflow.keras.models import load_model
-# model = load_model('your_model.h5')
 
-# Функция для обнаружения объектов на кадре
-def detect_objects(frame):
-    # Ваш код для обнаружения объектов на кадре
-    # Изображение с нарисованными баундбоксами
+fkko = {
+    "wood": "ОТХОДЫ СЕЛЬСКОГО ХОЗЯЙСТВА|ОТХОДЫ ЛЕСНОГО ХОЗЯЙСТВА|ОТХОДЫ РЫБОВОДСТВА И РЫБОЛОВСТВА|Отходы при уборке урожая зерновых и зернобобовых культур|зелень древесная|ОТХОДЫ ПРОИЗВОДСТВА БУМАГИ И БУМАЖНЫХ ИЗДЕЛИЙ".lower(),
+    "stone": "ОТХОДЫ СЕЛЬСКОГО ХОЗЯЙСТВА|ОТХОДЫ ОБРАБАТЫВАЮЩИХ ПРОИЗВОДСТВ|ОТХОДЫ ДОБЫЧИ ПОЛЕЗНЫХ ИСКОПАЕМЫХ".lower(),
+    "concrete": "ОТХОДЫ СЕЛЬСКОГО ХОЗЯЙСТВА|ОТХОДЫ ОБРАБАТЫВАЮЩИХ ПРОИЗВОДСТВ|ОТХОДЫ ДОБЫЧИ ПОЛЕЗНЫХ ИСКОПАЕМЫХ".lower(),
+    "ground": "ОТХОДЫ СЕЛЬСКОГО ХОЗЯЙСТВА|ОТХОДЫ ПРОИЗВОДСТВА ПИЩЕВЫХ ПРОДУКТОВ, НАПИТКОВ, ТАБАЧНЫХ ИЗДЕЛИЙ|ОТХОДЫ ОБРАБАТЫВАЮЩИХ ПРОИЗВОДСТВ".lower()
+}
 
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    return cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
+def display_object_info(obj):
+    # Display image
+    st.image(obj["image"], caption=f"Detected at {obj['time']}", use_column_width=True)
+
+    # Display additional information
+    materials_data = obj['material']
+    # Отображение графика
+    fig = px.bar(x=list(materials_data.keys()), y=list(materials_data.values()),
+                 labels={'x': 'Material', 'y': 'Probability'}, title='Material Probabilities')
+    st.plotly_chart(fig)
+
+    # Обработка события при клике на колонку
+    sorted_attr = sorted(materials_data.items(), key=lambda item: item[1], reverse=True)
+    selected_material = st.selectbox('Наиболее вероятный материал отходов:', sorted_attr[0])
+    related_categories = fkko[selected_material].split('|')[0:3]
+
+    # Отображение связанных категорий
+    st.write(f"Соответствующие категории отходов по ФККО (Федеральный классификационный каталог отходов):")
+    for category in related_categories:
+        st.write(f"- {category}")
+    st.write("---")
+
+# Function to simulate getting detected objects
+def get_detected_objects():
+    # Replace this with your logic to get detected objects
+    # For now, just returning a sample list
+    return [
+        {"image": "src/image/scr1.png", "time": "0:05", "material": {
+    "wood": 0.7,
+    "stone": 0.1,
+    "concrete": 0.1,
+    "ground": 0.1
+    }},
+        {"image": "src/image/scr2.png", "time": "0:15", "material": {
+    "wood": 0.2,
+    "stone": 0.3,
+    "concrete": 0.4,
+    "ground": 0.1
+    }},
+        # Add more objects as needed
+    ]
 
 def main():
-    st.title("Обнаружение объектов на видео")
+    st.title("Users. Система контроля за строительными отходами.")
 
-    # Загрузка видео с помощью Streamlit
-    uploaded_file = st.file_uploader("Выберите видео", type=["mp4", "avi"])
+    inference_msg = st.empty()
+    st.sidebar.title("Конфиграция")
 
-    if uploaded_file is not None:
-        # Чтение видео с использованием OpenCV
-        video = cv2.VideoCapture(uploaded_file)
+    input_source = st.sidebar.radio(
+        "Выберите источник входных данных",
+        ('RTSP', 'Локальное видео'))
 
-        # Отображение видеопотока и баундбоксов на каждом кадре
-        while True:
-            ret, frame = video.read()
-            if not ret:
-                break
+    save_output_video = st.sidebar.radio("Сохранить выходное видео?", ('Да', 'Нет'))
+    if save_output_video == 'Да':
+        nosave = False
+        display_labels = False
+    else:
+        nosave = True
+        display_labels = True
 
-            # Обработка кадра
-            processed_frame = detect_objects(frame)
+    save_poor_frame = st.sidebar.radio("Сохранить кадры с плохой производительностью?", ('Да', 'Нет'))
+    if save_poor_frame == "Да":
+        save_poor_frame__ = True
+    else:
+        save_poor_frame__ = False
 
-            # Отображение кадра с баундбоксами
-            st.image(processed_frame, channels="BGR")
+    # ------------------------- LOCAL VIDEO ------------------------------
+    if input_source == "Локальное видео":
+        video = st.sidebar.file_uploader("Выберите входное видео", type=["mp4", "avi"], accept_multiple_files=False)
 
-        video.release()
+        if st.sidebar.button("Начало обработки"):
+
+            st.video(video, start_time=0)
+            # Обработка нейросетью
+            # detect(source=video.name, stframe=stframe, kpi1_text=kpi1_text, kpi2_text=kpi2_text, kpi3_text=kpi3_text,
+            #        js1_text=js1_text, js2_text=js2_text, js3_text=js3_text, conf_thres=float(conf_thres), nosave=nosave,
+            #        display_labels=display_labels, conf_thres_drift=float(conf_thres_drift),
+            #        save_poor_frame__=save_poor_frame__, inf_ov_1_text=inf_ov_1_text, inf_ov_2_text=inf_ov_2_text,
+            #        inf_ov_3_text=inf_ov_3_text, inf_ov_4_text=inf_ov_4_text, fps_warn=fps_warn,
+            #        fps_drop_warn_thresh=float(fps_drop_warn_thresh))
+
+            inference_msg.success("Успешно обработан!")
+
+
+            st.subheader("Обнаруженные объекты")
+            detected_objects = get_detected_objects()  # Replace with your logic to get detected objects
+            for obj in detected_objects:
+                display_object_info(obj)
+
+            # Function to display object information
+
+    # -------------------------- RTSP ------------------------------
+    if input_source == "RTSP":
+
+        rtsp_input = st.sidebar.text_input("IP Address", "rtsp://192.168.0.1")
+        if st.sidebar.button("Start tracking"):
+            stframe = st.empty()
+
+            st.subheader("Inference Stats")
+            kpi1, kpi2, kpi3 = st.columns(3)
+
+            st.subheader("System Stats")
+            js1, js2, js3 = st.columns(3)
+
+            # Updating Inference results
+
+            with kpi1:
+                st.markdown("**Frame Rate**")
+                kpi1_text = st.markdown("0")
+                fps_warn = st.empty()
+
+            with kpi2:
+                st.markdown("**Detected objects in curret Frame**")
+                kpi2_text = st.markdown("0")
+
+            with kpi3:
+                st.markdown("**Total Detected objects**")
+                kpi3_text = st.markdown("0")
+
+            # Updating System stats
+
+            with js1:
+                st.markdown("**Memory usage**")
+                js1_text = st.markdown("0")
+
+            with js2:
+                st.markdown("**CPU Usage**")
+                js2_text = st.markdown("0")
+
+            with js3:
+                st.markdown("**GPU Memory Usage**")
+                js3_text = st.markdown("0")
+
+            st.subheader("Inference Overview")
+            inf_ov_1, inf_ov_2, inf_ov_3, inf_ov_4 = st.columns(4)
+
+            with inf_ov_1:
+                st.markdown("**Poor performing classes (Conf < {0})**".format(conf_thres_drift))
+                inf_ov_1_text = st.markdown("0")
+
+            with inf_ov_2:
+                st.markdown("**No. of poor peforming frames**")
+                inf_ov_2_text = st.markdown("0")
+
+            with inf_ov_3:
+                st.markdown("**Minimum FPS**")
+                inf_ov_3_text = st.markdown("0")
+
+            with inf_ov_4:
+                st.markdown("**Maximum FPS**")
+                inf_ov_4_text = st.markdown("0")
+
+            detect(source=rtsp_input, stframe=stframe, kpi1_text=kpi1_text, kpi2_text=kpi2_text, kpi3_text=kpi3_text,
+                   js1_text=js1_text, js2_text=js2_text, js3_text=js3_text, conf_thres=float(conf_thres), nosave=nosave,
+                   display_labels=display_labels, conf_thres_drift=float(conf_thres_drift),
+                   save_poor_frame__=save_poor_frame__, inf_ov_1_text=inf_ov_1_text, inf_ov_2_text=inf_ov_2_text,
+                   inf_ov_3_text=inf_ov_3_text, inf_ov_4_text=inf_ov_4_text, fps_warn=fps_warn,
+                   fps_drop_warn_thresh=float(fps_drop_warn_thresh))
+
+    # torch.cuda.empty_cache()
+
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except SystemExit:
+        pass
