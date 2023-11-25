@@ -72,3 +72,4 @@ watchdog==3.0.0
 yarl==1.9.3
 zipp==3.17.0
 pyopengl
+cv2
