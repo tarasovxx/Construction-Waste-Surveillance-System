@@ -10,18 +10,18 @@
 
 Уникальность нашего решения заключается в его быстроте: оно способно лишь на одной CPU работать в режиме большой нагрузки и обрабатывать до 20 запросов в минуту, что позволяет Депстрою использовать его на практике.
 
-///////
+
 Технические особенности:
-Использование мультиязычного BERT для создания векторных представлений текста
-Многоуровневая кластеризация: UMAP -> HDBSCAN -> CountVectorizer -> TF-IDF
+Использование препроцессинга: цветовая фильтрация, стабилизация камеры, детекция движений, выделение контуров самосвала.
+Многоуровневая классификация: ResNet (transfer learning)
 - Эмоциональная окраска текста с помощью XLM Roberta, обученного на комментариях пользователей 
 - Интерфейс на основе Streamlit
-///////
+
 
 # Пример решения
-///////
-![demo](https://github.com/Baltsat/users-rosatom/blob/main/data/gf.gif)
-///////
+<img width="1473" alt="image" src="https://github.com/tarasovxx/Construction-Waste-Surveillance-System/assets/42536677/18c5a224-7c63-4661-b056-7793210bd1e3">
+<img width="1456" alt="image" src="https://github.com/tarasovxx/Construction-Waste-Surveillance-System/assets/42536677/b3f5dcfb-09d4-49ea-88fb-c8641a371670">
+
 
 # Установка
 - `git clone https://github.com/tarasovxx/Construction-Waste-Surveillance-System`
