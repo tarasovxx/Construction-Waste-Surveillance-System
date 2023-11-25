@@ -1,12 +1,9 @@
-from torch import nn, optim
 from torch.nn import functional as F
 from torchvision import transforms, models
 import torch
 import torchmetrics
 from torch import nn, optim
-import numpy as np
 import lightning.pytorch as pl
-import cv2
 
 
 # Архитектура модели
