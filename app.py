@@ -1,7 +1,11 @@
+import asyncio
+
 import cv2
+import io
 import streamlit as st
 import plotly.express as px
 
+from process import save_cropped_contours
 
 fkko = {
     "wood": "ОТХОДЫ СЕЛЬСКОГО ХОЗЯЙСТВА|ОТХОДЫ ЛЕСНОГО ХОЗЯЙСТВА|ОТХОДЫ РЫБОВОДСТВА И РЫБОЛОВСТВА|Отходы при уборке урожая зерновых и зернобобовых культур|зелень древесная|ОТХОДЫ ПРОИЗВОДСТВА БУМАГИ И БУМАЖНЫХ ИЗДЕЛИЙ".lower(),
@@ -78,11 +82,21 @@ def main():
 
     # ------------------------- LOCAL VIDEO ------------------------------
     if input_source == "Локальное видео":
-        video = st.sidebar.file_uploader("Выберите входное видео", type=["mp4", "avi"], accept_multiple_files=False)
+        video_bytes = st.sidebar.file_uploader("Выберите входное видео", type=["mp4", "avi"], accept_multiple_files=False)
+        if video_bytes is not None:
+            # Сохраняем видео на диск
+            video_path = "temp_video.mp4"
+            with open(video_path, "wb") as file:
+                file.write(video_bytes.read())
+            video_capture = cv2.VideoCapture(video_path)
+            print("video_capture", video_capture)
 
         if st.sidebar.button("Начало обработки"):
+            output_video_path, preview, time = asyncio.run(save_cropped_contours(
+                io.BytesIO(video_bytes.read())))
+            print(f"!!!!!!!!!!! {output_video_path, preview, time}")
+            st.video(video_bytes, start_time=0)
 
-            st.video(video, start_time=0)
             # Обработка нейросетью
             # detect(source=video.name, stframe=stframe, kpi1_text=kpi1_text, kpi2_text=kpi2_text, kpi3_text=kpi3_text,
             #        js1_text=js1_text, js2_text=js2_text, js3_text=js3_text, conf_thres=float(conf_thres), nosave=nosave,
