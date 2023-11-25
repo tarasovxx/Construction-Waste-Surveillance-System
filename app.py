@@ -2,6 +2,7 @@ import asyncio
 
 import cv2
 import io
+import os.path
 import streamlit as st
 import plotly.express as px
 
@@ -83,19 +84,25 @@ def main():
     # ------------------------- LOCAL VIDEO ------------------------------
     if input_source == "Локальное видео":
         video_bytes = st.sidebar.file_uploader("Выберите входное видео", type=["mp4", "avi"], accept_multiple_files=False)
+        video_capture = None
         if video_bytes is not None:
             # Сохраняем видео на диск
             video_path = "temp_video.mp4"
             with open(video_path, "wb") as file:
                 file.write(video_bytes.read())
+
+            print("isfile", os.path.isfile(video_path))
             video_capture = cv2.VideoCapture(video_path)
             print("video_capture", video_capture)
 
         if st.sidebar.button("Начало обработки"):
-            output_video_path, preview, time = asyncio.run(save_cropped_contours(
-                io.BytesIO(video_bytes.read())))
-            print(f"!!!!!!!!!!! {output_video_path, preview, time}")
-            st.video(video_bytes, start_time=0)
+            output_video_path, frame_, milliseconds = asyncio.run(save_cropped_contours(video_path))
+            print(f"!!!!!!!!!!! {output_video_path, frame_, milliseconds}")
+            seconds, milliseconds = divmod(milliseconds, 1000)
+            minutes, seconds = divmod(seconds, 60)
+
+            print(f'{int(minutes):02d}:{int(seconds):02d}.{int(milliseconds):03d}')
+            st.video(video_bytes, start_time=int(seconds+minutes*60+bool(milliseconds)))
 
             # Обработка нейросетью
             # detect(source=video.name, stframe=stframe, kpi1_text=kpi1_text, kpi2_text=kpi2_text, kpi3_text=kpi3_text,
@@ -109,6 +116,7 @@ def main():
 
 
             st.subheader("Обнаруженные объекты")
+            st.image(frame_, channels="RGB")
             detected_objects = get_detected_objects()  # Replace with your logic to get detected objects
             for obj in detected_objects:
                 display_object_info(obj)

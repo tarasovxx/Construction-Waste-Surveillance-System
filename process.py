@@ -108,7 +108,7 @@ async def save_cropped_contours(video_path, contour_width_threshold=140, contour
             debug_frame = cropped_frame.copy()
             if largest_contour is not None:
                 x, y, w, h = cv2.boundingRect(largest_contour)
-                cv2.rectangle(debug_frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
+                cv2.rectangle(debug_frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
                 frames_with_contours.append(debug_frame)
 
             debug_frames.append(debug_frame)
@@ -136,7 +136,7 @@ async def save_cropped_contours(video_path, contour_width_threshold=140, contour
 
     cap.release()
 
-    return output_video_path if os.path.isfile(output_video_path) else None, output_picture_path if os.path.isfile(output_picture_path) else None, final_time
+    return output_video_path if os.path.isfile(output_video_path) else None, frame_, final_time
 
 # if __name__ == "__main__":
 #     import os
