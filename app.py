@@ -15,9 +15,10 @@ fkko = {
     "ground": "ОТХОДЫ СЕЛЬСКОГО ХОЗЯЙСТВА|ОТХОДЫ ПРОИЗВОДСТВА ПИЩЕВЫХ ПРОДУКТОВ, НАПИТКОВ, ТАБАЧНЫХ ИЗДЕЛИЙ|ОТХОДЫ ОБРАБАТЫВАЮЩИХ ПРОИЗВОДСТВ".lower()
 }
 
+
 def display_object_info(obj):
     # Display image
-    st.image(obj["image"], caption=f"Detected at {obj['time']}", use_column_width=True)
+    st.image(obj["image"], caption=f"Detected at {obj['time']}", use_column_width=True, channels="RGB")
 
     # Display additional information
     materials_data = obj['material']
@@ -37,25 +38,22 @@ def display_object_info(obj):
         st.write(f"- {category}")
     st.write("---")
 
+
 # Function to simulate getting detected objects
-def get_detected_objects():
+def get_detected_objects(elements):
     # Replace this with your logic to get detected objects
     # For now, just returning a sample list
-    return [
-        {"image": "src/image/scr1.png", "time": "0:05", "material": {
-    "wood": 0.7,
-    "stone": 0.1,
-    "concrete": 0.1,
-    "ground": 0.1
-    }},
-        {"image": "src/image/scr2.png", "time": "0:15", "material": {
-    "wood": 0.2,
-    "stone": 0.3,
-    "concrete": 0.4,
-    "ground": 0.1
-    }},
-        # Add more objects as needed
-    ]
+    detected_objects = []
+    for el in elements:
+        detected_objects.append({"image": el[0], "time": f'{int(el[1]):02d}:{int(el[2]):02d}.{int(el[3]):03d}',
+         "material": {
+             "wood": 0,
+             "stone": 0.98,
+             "concrete": 0.01,
+             "ground": 0.01
+         }})
+    return detected_objects
+
 
 def main():
     st.title("Users. Система контроля за строительными отходами.")
@@ -83,7 +81,8 @@ def main():
 
     # ------------------------- LOCAL VIDEO ------------------------------
     if input_source == "Локальное видео":
-        video_bytes = st.sidebar.file_uploader("Выберите входное видео", type=["mp4", "avi"], accept_multiple_files=False)
+        video_bytes = st.sidebar.file_uploader("Выберите входное видео", type=["mp4", "avi"],
+                                               accept_multiple_files=False)
         video_capture = None
         if video_bytes is not None:
             # Сохраняем видео на диск
@@ -101,8 +100,7 @@ def main():
             seconds, milliseconds = divmod(milliseconds, 1000)
             minutes, seconds = divmod(seconds, 60)
 
-            print(f'{int(minutes):02d}:{int(seconds):02d}.{int(milliseconds):03d}')
-            st.video(video_bytes, start_time=int(seconds+minutes*60+bool(milliseconds)))
+            st.video(video_bytes, start_time=int(seconds + minutes * 60 + bool(milliseconds)))
 
             # Обработка нейросетью
             # detect(source=video.name, stframe=stframe, kpi1_text=kpi1_text, kpi2_text=kpi2_text, kpi3_text=kpi3_text,
@@ -114,10 +112,8 @@ def main():
 
             inference_msg.success("Успешно обработан!")
 
-
             st.subheader("Обнаруженные объекты")
-            st.image(frame_, channels="RGB")
-            detected_objects = get_detected_objects()  # Replace with your logic to get detected objects
+            detected_objects = get_detected_objects([(frame_, minutes, seconds, milliseconds)])  # Replace with your logic to get detected objects
             for obj in detected_objects:
                 display_object_info(obj)
 
