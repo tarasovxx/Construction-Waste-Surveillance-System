@@ -44,27 +44,13 @@ streamlit run app.py
 
 `Python3`, `git`, `GitHub` - инструменты разработки
 
-///////
-`HF Transformers`, `TweetNLP`, `BertTopic` - библиотеки глубокого обучения
-
-`Scikit-Learn`, `UMAP`, `KMeans` - фреймворки машинного обучения  
-//////
 
 `Plotly`, `Streamlit`, `SciPy` - инструменты визуализации  
 
 
 # Сравнение моделей
 
-//////
-| Model  Description                                                | F1 Macro | Time    |
-|--------------------------------------------------------|----------|---------|
-| NaiveModel         каждое слово = новый кластер                                     | 0.81     | 10 ms   |
-| LevensteinSimilarityModel    Если ответы схожие более, чем на 63% = образуют один кластер                          | 0.87     | 102 ms  |
-| LevenshteinSimilatity + Processing Lemmatization, delete punct | 0.89     | 1 s     |
-| SelfClusterModel#1 + SentimentTransformer (Bert-Multilingual + PCA + KMeans ) + (TweetNLP + xlm-roberta-multilingual) | 0.92     |         |
-| SelfClusterModel#2                                     | 0.94     | 6 s     |
-| SelfClusterModel#2 + SentimentTransformer              | 0.97     |         |
-///////
+
 
 
 
