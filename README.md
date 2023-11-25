@@ -72,10 +72,8 @@ streamlit run app.py
 
 
 # Проводимые исследования
-//////
-- `research_models_visualization.ipynb` - исследования с моделями градиентного бустинга
-- `data_preprocess.ipynb` - предобработка данных 
-//////
+
+- `notebook.ipynb` - исследования с детекцией объектов на видео и предобработка данных 
 
 # Документация Django API
 
